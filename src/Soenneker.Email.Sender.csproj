@@ -42,7 +42,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Soenneker.Email.Mime" Version="3.0.90" />
+        <PackageReference Include="Soenneker.Email.Mime" Version="3.0.92" />
         <PackageReference Include="Soenneker.Extensions.Dtos.Email" Version="3.0.139" />
         <PackageReference Include="Soenneker.Extensions.Messages.Email" Version="3.0.123" />
         <PackageReference Include="Soenneker.Utils.Template" Version="3.0.98" />
