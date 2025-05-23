@@ -44,7 +44,7 @@
     <ItemGroup>
         <PackageReference Include="Soenneker.Email.Mime" Version="3.0.106" />
         <PackageReference Include="Soenneker.Extensions.Dtos.Email" Version="3.0.159" />
-        <PackageReference Include="Soenneker.Extensions.Messages.Email" Version="3.0.142" />
+        <PackageReference Include="Soenneker.Extensions.Messages.Email" Version="3.0.143" />
         <PackageReference Include="Soenneker.Utils.Template" Version="3.0.112" />
     </ItemGroup>
 </Project>
