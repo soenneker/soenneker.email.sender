@@ -6,12 +6,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Soenneker.Dtos.Email;
 using Soenneker.Email.Mime.Abstract;
-using Soenneker.Email.Sender.Abstract;
 using Soenneker.Messages.Email;
 using Soenneker.Utils.Json;
 using Soenneker.Utils.Template.Abstract;
 using Soenneker.Extensions.Dtos.Email;
 using System.Threading;
+using Soenneker.Email.Senders.Abstract;
 using Soenneker.Extensions.Configuration;
 using Soenneker.Extensions.ValueTask;
 using Soenneker.Extensions.Messages.Email;
@@ -19,7 +19,7 @@ using Soenneker.Extensions.Messages.Email;
 namespace Soenneker.Email.Sender;
 
 ///<inheritdoc cref="IEmailSender"/>
-public class EmailSender : IEmailSender
+public sealed class EmailSender : IEmailSender
 {
     private readonly bool _enabled;
 

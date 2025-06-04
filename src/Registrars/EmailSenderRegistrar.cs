@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Soenneker.Email.Mime.Registrars;
-using Soenneker.Email.Sender.Abstract;
+using Soenneker.Email.Senders.Abstract;
 using Soenneker.Utils.Template.Registrars;
 
 namespace Soenneker.Email.Sender.Registrars;

@@ -1,4 +1,4 @@
-﻿using Soenneker.Email.Sender.Abstract;
+﻿using Soenneker.Email.Senders.Abstract;
 using Soenneker.Tests.FixturedUnit;
 using Xunit;
 
