@@ -13,9 +13,8 @@ using Soenneker.Extensions.Dtos.Email;
 using System.Threading;
 using Soenneker.Email.Senders.Abstract;
 using Soenneker.Extensions.Configuration;
+using Soenneker.Extensions.Dictionaries.StringString;
 using Soenneker.Extensions.ValueTask;
-using Soenneker.Extensions.Messages.Email;
-
 namespace Soenneker.Email.Sender;
 
 ///<inheritdoc cref="IEmailSender"/>
@@ -82,25 +81,30 @@ public sealed class EmailSender : IEmailSender
 
     private async ValueTask<EmailDto> BuildEmailDto(EmailMessage message, CancellationToken cancellationToken)
     {
-        message.TemplateFile ??= _defaultTemplate;
+        message.TemplateFileName ??= _defaultTemplate;
 
-        string templateFilePath = Path.Combine("Resources", "Email", "Templates", message.TemplateFile);
-        string bodyFilePath = Path.Combine("Resources", "Email", "Contents", message.BodyFile);
+        string templateFilePath = Path.Combine("Resources", "Email", "Templates", message.TemplateFileName);
 
-        Dictionary<string, string> tokensToReplace = message.ToTokenDictionary();
+        string? contentFilePath = null;
 
-        var tokenObjects = new Dictionary<string, object>();
+        if (message.ContentFileName != null)
+            contentFilePath = Path.Combine("Resources", "Email", "Contents", message.ContentFileName);
 
-        foreach (KeyValuePair<string, string> kvp in tokensToReplace)
+        Dictionary<string, object> tokens = message.Tokens != null ? message.Tokens.ToObjectDictionary() : new Dictionary<string, object>();
+
+        tokens.Add("subject", message.Subject);
+
+        string renderedBody;
+
+        if (contentFilePath != null)
         {
-            tokenObjects[kvp.Key] = kvp.Value;
+            renderedBody = await _templateUtil.RenderWithContent(templateFilePath, tokens, contentFilePath, "bodyText", message.Partials, cancellationToken)
+                                              .NoSync();
         }
-
-        string renderedBody = await _templateUtil.Render(
-            templateFilePath,
-            tokenObjects,
-            bodyFilePath,
-            cancellationToken: cancellationToken).NoSync();
+        else
+        {
+            renderedBody = await _templateUtil.Render(templateFilePath, tokens, message.Partials, cancellationToken).NoSync();
+        }
 
         return new EmailDto
         {
