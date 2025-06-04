@@ -1,27 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Soenneker.Dtos.Email;
 using Soenneker.Email.Mime.Abstract;
-using Soenneker.Messages.Email;
-using Soenneker.Utils.Json;
-using Soenneker.Utils.Template.Abstract;
-using Soenneker.Extensions.Dtos.Email;
-using System.Threading;
 using Soenneker.Email.Senders.Abstract;
 using Soenneker.Extensions.Configuration;
 using Soenneker.Extensions.Dictionaries.StringString;
+using Soenneker.Extensions.Dtos.Email;
+using Soenneker.Extensions.Enumerable.String;
+using Soenneker.Extensions.Task;
 using Soenneker.Extensions.ValueTask;
+using Soenneker.Messages.Email;
+using Soenneker.Utils.Json;
+using Soenneker.Utils.Template.Abstract;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+
 namespace Soenneker.Email.Sender;
 
 ///<inheritdoc cref="IEmailSender"/>
 public sealed class EmailSender : IEmailSender
 {
     private readonly bool _enabled;
-
     private readonly ILogger<EmailSender> _logger;
     private readonly IMimeUtil _mimeUtil;
     private readonly ITemplateUtil _templateUtil;
@@ -38,7 +40,6 @@ public sealed class EmailSender : IEmailSender
         _templateUtil = templateUtil;
 
         _enabled = config.GetValue<bool>("Smtp:Enable");
-
         if (!_enabled)
             return;
 
@@ -48,31 +49,59 @@ public sealed class EmailSender : IEmailSender
 
     public async Task<bool> Send(string messageContent, Type? type, CancellationToken cancellationToken = default)
     {
+        if (!_enabled)
+        {
+            _logger.LogDebug("{Name} is disabled by config", nameof(EmailSender));
+            return false;
+        }
+
+        if (type == null)
+            throw new ArgumentException("Service bus message did not have a type", nameof(type));
+
+        object? msgModel = JsonUtil.Deserialize(messageContent, type);
+        if (msgModel is not EmailMessage message)
+            throw new InvalidOperationException($"Service bus message was not a {nameof(EmailMessage)}");
+
+        return await Send(message, cancellationToken).NoSync();
+    }
+
+    public async Task<bool> Send(EmailMessage message, CancellationToken cancellationToken = default)
+    {
+        if (!_enabled)
+        {
+            _logger.LogDebug("{Name} is disabled by config", nameof(EmailSender));
+            return false;
+        }
+
+        if (message == null)
+        {
+            _logger.LogError("EmailSender.Send called with null EmailMessage");
+            throw new ArgumentNullException(nameof(message));
+        }
+
+        _logger.LogInformation("Building and sending email (Subject: {Subject}) to {ToList}", message.Subject, message.To.ToCommaSeparatedString());
+
+        EmailDto emailDto;
         try
         {
-            if (!_enabled)
-            {
-                _logger.LogDebug("{name} has been disabled from config", nameof(EmailSender));
-                return false;
-            }
-
-            if (type == null)
-                throw new Exception("Service bus message did not have a type");
-
-            object? msgModel = JsonUtil.Deserialize(messageContent, type);
-
-            if (msgModel is not EmailMessage message)
-                throw new Exception($"Service bus message was not a {typeof(EmailMessage)}");
-
-            EmailDto emailDto = await BuildEmailDto(message, cancellationToken).NoSync();
-
-            var mimeMessage = emailDto.ToMimeMessage(_logger);
-
-            await _mimeUtil.Send(mimeMessage, cancellationToken).NoSync();
+            emailDto = await BuildEmailDto(message, cancellationToken).NoSync();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            _logger.LogCritical(e, "Unable to send email: {content}", messageContent);
+            _logger.LogError(ex, "Failed to build EmailDto for message (Subject: {Subject})", message.Subject);
+            throw;
+        }
+
+        try
+        {
+            var mimeMessage = emailDto.ToMimeMessage(_logger);
+            _logger.LogDebug("Sending MIME message (Subject: {Subject}) to {ToList}", emailDto.Subject, string.Join(", ", emailDto.To));
+            await _mimeUtil.Send(mimeMessage, cancellationToken).NoSync();
+            _logger.LogInformation("Email (Subject: {Subject}) successfully sent to {ToList}", emailDto.Subject, string.Join(", ", emailDto.To));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "SMTP send failed for message (Subject: {Subject}) to {ToList}", emailDto.Subject, string.Join(", ", emailDto.To));
             throw;
         }
 
@@ -82,20 +111,16 @@ public sealed class EmailSender : IEmailSender
     private async ValueTask<EmailDto> BuildEmailDto(EmailMessage message, CancellationToken cancellationToken)
     {
         message.TemplateFileName ??= _defaultTemplate;
-
         string templateFilePath = Path.Combine("Resources", "Email", "Templates", message.TemplateFileName);
 
         string? contentFilePath = null;
-
         if (message.ContentFileName != null)
             contentFilePath = Path.Combine("Resources", "Email", "Contents", message.ContentFileName);
 
         Dictionary<string, object> tokens = message.Tokens != null ? message.Tokens.ToObjectDictionary() : new Dictionary<string, object>();
-
         tokens.Add("subject", message.Subject);
 
         string renderedBody;
-
         if (contentFilePath != null)
         {
             renderedBody = await _templateUtil.RenderWithContent(templateFilePath, tokens, contentFilePath, "bodyText", message.Partials, cancellationToken)
