@@ -30,21 +30,18 @@ public sealed class EmailSender : IEmailSender
 
     private const string _defaultTemplate = "default.html";
 
-    private readonly string? _senderEmail;
-    private readonly string? _senderName;
+    private readonly string _defaultAddress;
+    private readonly string _defaultName;
 
-    public EmailSender(IConfiguration config, ILogger<EmailSender> logger, IMimeUtil mimeUtil, ITemplateUtil templateUtil)
+    public EmailSender(IConfiguration configuration, ILogger<EmailSender> logger, IMimeUtil mimeUtil, ITemplateUtil templateUtil)
     {
         _logger = logger;
         _mimeUtil = mimeUtil;
         _templateUtil = templateUtil;
 
-        _enabled = config.GetValue<bool>("Smtp:Enable");
-        if (!_enabled)
-            return;
-
-        _senderEmail = config.GetValueStrict<string>("Smtp:EmailAddress");
-        _senderName = config.GetValueStrict<string>("Smtp:Name");
+        _enabled = configuration.GetValueStrict<bool>("Email:Enabled");
+        _defaultAddress = configuration.GetValueStrict<string>("Email:DefaultAddress");
+        _defaultName = configuration.GetValueStrict<string>("Email:DefaultName");
     }
 
     public async Task<bool> Send(string messageContent, Type? type, CancellationToken cancellationToken = default)
@@ -111,6 +108,9 @@ public sealed class EmailSender : IEmailSender
     private async ValueTask<EmailDto> BuildEmailDto(EmailMessage message, CancellationToken cancellationToken)
     {
         message.TemplateFileName ??= _defaultTemplate;
+        message.Name ??= _defaultName;
+        message.Address ??= _defaultAddress;
+
         string templateFilePath = Path.Combine("Resources", "Email", "Templates", message.TemplateFileName);
 
         string? contentFilePath = null;
@@ -135,8 +135,8 @@ public sealed class EmailSender : IEmailSender
         {
             Body = renderedBody,
             Subject = message.Subject,
-            Name = _senderName!,
-            Address = _senderEmail!,
+            Name = message.Name,
+            Address = message.Address,
             To = message.To,
             Cc = message.Cc,
             Bcc = message.Bcc
