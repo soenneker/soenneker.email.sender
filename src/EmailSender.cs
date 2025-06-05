@@ -92,13 +92,13 @@ public sealed class EmailSender : IEmailSender
         try
         {
             var mimeMessage = emailDto.ToMimeMessage(_logger);
-            _logger.LogDebug("Sending MIME message (Subject: {Subject}) to {ToList}", emailDto.Subject, string.Join(", ", emailDto.To));
+            _logger.LogDebug("Sending MIME message (Subject: {Subject}) to {ToList}", emailDto.Subject, emailDto.To.ToCommaSeparatedString(true));
             await _mimeUtil.Send(mimeMessage, cancellationToken).NoSync();
-            _logger.LogInformation("Email (Subject: {Subject}) successfully sent to {ToList}", emailDto.Subject, string.Join(", ", emailDto.To));
+            _logger.LogInformation("Email (Subject: {Subject}) successfully sent to {ToList}", emailDto.Subject, emailDto.To.ToCommaSeparatedString(true));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "SMTP send failed for message (Subject: {Subject}) to {ToList}", emailDto.Subject, string.Join(", ", emailDto.To));
+            _logger.LogError(ex, "SMTP send failed for message (Subject: {Subject}) to {ToList}", emailDto.Subject, emailDto.To.ToCommaSeparatedString(true));
             throw;
         }
 
