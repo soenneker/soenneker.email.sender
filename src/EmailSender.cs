@@ -17,7 +17,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
 
 namespace Soenneker.Email.Sender;
 
@@ -28,19 +27,17 @@ public sealed class EmailSender : IEmailSender
     private readonly ILogger<EmailSender> _logger;
     private readonly IMimeUtil _mimeUtil;
     private readonly ITemplateUtil _templateUtil;
-    private readonly IHostEnvironment _hostEnv;
 
     private const string _defaultTemplate = "default.html";
 
     private readonly string _defaultAddress;
     private readonly string _defaultName;
 
-    public EmailSender(IConfiguration configuration, ILogger<EmailSender> logger, IMimeUtil mimeUtil, ITemplateUtil templateUtil, IHostEnvironment hostEnv)
+    public EmailSender(IConfiguration configuration, ILogger<EmailSender> logger, IMimeUtil mimeUtil, ITemplateUtil templateUtil)
     {
         _logger = logger;
         _mimeUtil = mimeUtil;
         _templateUtil = templateUtil;
-        _hostEnv = hostEnv;
 
         _enabled = configuration.GetValueStrict<bool>("Email:Enabled");
         _defaultAddress = configuration.GetValueStrict<string>("Email:DefaultAddress");
@@ -114,12 +111,12 @@ public sealed class EmailSender : IEmailSender
         message.Name ??= _defaultName;
         message.Address ??= _defaultAddress;
 
-        string templateFilePath = Path.Combine(_hostEnv.ContentRootPath, "LocalResources", "Email", "Templates", message.TemplateFileName);
+        string templateFilePath = Path.Combine(AppContext.BaseDirectory, "LocalResources", "Email", "Templates", message.TemplateFileName);
 
         string? contentFilePath = null;
 
         if (message.ContentFileName != null)
-            contentFilePath = Path.Combine(_hostEnv.ContentRootPath, "LocalResources", "Email", "Contents", message.ContentFileName);
+            contentFilePath = Path.Combine(AppContext.BaseDirectory, "LocalResources", "Email", "Contents", message.ContentFileName);
 
         Dictionary<string, object> tokens = message.Tokens != null ? message.Tokens.ToObjectDictionary() : new Dictionary<string, object>();
         tokens.Add("subject", message.Subject);
