@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 
 namespace Soenneker.Email.Sender;
 
-///<inheritdoc cref="IEmailSender"/>
+/// <inheritdoc cref="IEmailSender"/>
 public sealed class EmailSender : IEmailSender
 {
     private readonly bool _enabled;
@@ -33,7 +33,15 @@ public sealed class EmailSender : IEmailSender
     private readonly string _defaultAddress;
     private readonly string _defaultName;
 
-    public EmailSender(IConfiguration configuration, ILogger<EmailSender> logger, IMimeUtil mimeUtil, ITemplateUtil templateUtil)
+    // Cache common roots (avoids repeated Path.Combine chains + repeated BaseDirectory lookups)
+    private readonly string _templatesRoot;
+    private readonly string _contentsRoot;
+
+    public EmailSender(
+        IConfiguration configuration,
+        ILogger<EmailSender> logger,
+        IMimeUtil mimeUtil,
+        ITemplateUtil templateUtil)
     {
         _logger = logger;
         _mimeUtil = mimeUtil;
@@ -42,20 +50,27 @@ public sealed class EmailSender : IEmailSender
         _enabled = configuration.GetValueStrict<bool>("Email:Enabled");
         _defaultAddress = configuration.GetValueStrict<string>("Email:DefaultAddress");
         _defaultName = configuration.GetValueStrict<string>("Email:DefaultName");
+
+        string baseDir = AppContext.BaseDirectory;
+        string localResources = Path.Combine(baseDir, "LocalResources", "Email");
+        _templatesRoot = Path.Combine(localResources, "Templates");
+        _contentsRoot = Path.Combine(localResources, "Contents");
     }
 
     public async Task<bool> Send(string messageContent, Type? type, CancellationToken cancellationToken = default)
     {
         if (!_enabled)
         {
-            _logger.LogDebug("{Name} is disabled by config", nameof(EmailSender));
+            if (_logger.IsEnabled(LogLevel.Debug))
+                _logger.LogDebug("{Name} is disabled by config", nameof(EmailSender));
             return false;
         }
 
-        if (type == null)
+        if (type is null)
             throw new ArgumentException("Service bus message did not have a type", nameof(type));
 
         object? msgModel = JsonUtil.Deserialize(messageContent, type);
+
         if (msgModel is not EmailMessage message)
             throw new InvalidOperationException($"Service bus message was not a {nameof(EmailMessage)}");
 
@@ -66,17 +81,19 @@ public sealed class EmailSender : IEmailSender
     {
         if (!_enabled)
         {
-            _logger.LogDebug("{Name} is disabled by config", nameof(EmailSender));
+            if (_logger.IsEnabled(LogLevel.Debug))
+                _logger.LogDebug("{Name} is disabled by config", nameof(EmailSender));
             return false;
         }
 
-        if (message == null)
-        {
-            _logger.LogError("EmailSender.Send called with null EmailMessage");
-            throw new ArgumentNullException(nameof(message));
-        }
+        ArgumentNullException.ThrowIfNull(message);
 
-        _logger.LogInformation("Building and sending email (Subject: {Subject}) to {ToList}", message.Subject, message.To.ToCommaSeparatedString());
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            // ToCommaSeparatedString allocates; do it only if needed
+            string toList = message.To.ToCommaSeparatedString();
+            _logger.LogInformation("Building and sending email (Subject: {Subject}) to {ToList}", message.Subject, toList);
+        }
 
         EmailDto emailDto;
         try
@@ -92,13 +109,34 @@ public sealed class EmailSender : IEmailSender
         try
         {
             var mimeMessage = emailDto.ToMimeMessage(_logger);
-            _logger.LogDebug("Sending MIME message (Subject: {Subject}) to {ToList}", emailDto.Subject, emailDto.To.ToCommaSeparatedString(true));
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                string toList = emailDto.To.ToCommaSeparatedString(true);
+                _logger.LogDebug("Sending MIME message (Subject: {Subject}) to {ToList}", emailDto.Subject, toList);
+            }
+
             await _mimeUtil.Send(mimeMessage, cancellationToken).NoSync();
-            _logger.LogInformation("Email (Subject: {Subject}) successfully sent to {ToList}", emailDto.Subject, emailDto.To.ToCommaSeparatedString(true));
+
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                string toList = emailDto.To.ToCommaSeparatedString(true);
+                _logger.LogInformation("Email (Subject: {Subject}) successfully sent to {ToList}", emailDto.Subject, toList);
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "SMTP send failed for message (Subject: {Subject}) to {ToList}", emailDto.Subject, emailDto.To.ToCommaSeparatedString(true));
+            // Only build ToList when we actually log it
+            if (_logger.IsEnabled(LogLevel.Error))
+            {
+                string toList = emailDto.To.ToCommaSeparatedString(true);
+                _logger.LogError(ex, "SMTP send failed for message (Subject: {Subject}) to {ToList}", emailDto.Subject, toList);
+            }
+            else
+            {
+                _logger.LogError(ex, "SMTP send failed for message (Subject: {Subject})", emailDto.Subject);
+            }
+
             throw;
         }
 
@@ -111,26 +149,33 @@ public sealed class EmailSender : IEmailSender
         message.Name ??= _defaultName;
         message.Address ??= _defaultAddress;
 
-        string templateFilePath = Path.Combine(AppContext.BaseDirectory, "LocalResources", "Email", "Templates", message.TemplateFileName);
+        string templateFilePath = Path.Combine(_templatesRoot, message.TemplateFileName);
 
-        string? contentFilePath = null;
+        // Only build content path when needed
+        string? contentFilePath = message.ContentFileName is null
+            ? null
+            : Path.Combine(_contentsRoot, message.ContentFileName);
 
-        if (message.ContentFileName != null)
-            contentFilePath = Path.Combine(AppContext.BaseDirectory, "LocalResources", "Email", "Contents", message.ContentFileName);
-
-        Dictionary<string, object> tokens = message.Tokens != null ? message.Tokens.ToObjectDictionary() : new Dictionary<string, object>();
-        tokens.Add("subject", message.Subject);
-
-        string renderedBody;
-        if (contentFilePath != null)
+        // Avoid allocating an empty dictionary twice; pre-size a bit since we add "subject".
+        Dictionary<string, object> tokens;
+        if (message.Tokens is null)
         {
-            renderedBody = await _templateUtil.RenderWithContent(templateFilePath, tokens, contentFilePath, "bodyText", message.Partials, cancellationToken)
-                                              .NoSync();
+            tokens = new Dictionary<string, object>(capacity: 1);
         }
         else
         {
-            renderedBody = await _templateUtil.Render(templateFilePath, tokens, message.Partials, cancellationToken).NoSync();
+            tokens = message.Tokens.ToObjectDictionary();
+
+            // If ToObjectDictionary might create a tight dictionary, adding capacity here is usually not worth it,
+            // but if you control it, consider over-allocating by +1 when constructing inside that method.
         }
+
+        // Use indexer to overwrite rather than throw if already present (safer + avoids exception path)
+        tokens["subject"] = message.Subject;
+
+        string renderedBody = contentFilePath is not null
+            ? await _templateUtil.RenderWithContent(templateFilePath, tokens, contentFilePath, "bodyText", message.Partials, cancellationToken).NoSync()
+            : await _templateUtil.Render(templateFilePath, tokens, message.Partials, cancellationToken).NoSync();
 
         return new EmailDto
         {
