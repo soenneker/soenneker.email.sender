@@ -57,7 +57,7 @@ public sealed class EmailSender : IEmailSender
         _contentsRoot = Path.Combine(localResources, "Contents");
     }
 
-    public async Task<bool> Send(string messageContent, Type? type, CancellationToken cancellationToken = default)
+    public async Task<bool> Send(string messageContent, Type type, CancellationToken cancellationToken = default)
     {
         if (!_enabled)
         {
