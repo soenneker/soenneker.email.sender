@@ -57,7 +57,7 @@ public sealed class EmailSender : IEmailSender
         _contentsRoot = Path.Combine(localResources, "Contents");
     }
 
-    public async Task<bool> Send(string messageContent, Type type, CancellationToken cancellationToken = default)
+    public async Task<bool> Send(string messageContent, string type, CancellationToken cancellationToken = default)
     {
         if (!_enabled)
         {
@@ -69,12 +69,12 @@ public sealed class EmailSender : IEmailSender
         if (type is null)
             throw new ArgumentException("Service bus message did not have a type", nameof(type));
 
-        object? msgModel = JsonUtil.Deserialize(messageContent, type);
+        var msgModel = JsonUtil.Deserialize<EmailMessage>(messageContent);
 
-        if (msgModel is not EmailMessage message)
+        if (msgModel is null)
             throw new InvalidOperationException($"Service bus message was not a {nameof(EmailMessage)}");
 
-        return await Send(message, cancellationToken).NoSync();
+        return await Send(msgModel, cancellationToken).NoSync();
     }
 
     public async Task<bool> Send(EmailMessage message, CancellationToken cancellationToken = default)
