@@ -37,11 +37,7 @@ public sealed class EmailSender : IEmailSender
     private readonly string _templatesRoot;
     private readonly string _contentsRoot;
 
-    public EmailSender(
-        IConfiguration configuration,
-        ILogger<EmailSender> logger,
-        IMimeUtil mimeUtil,
-        ITemplateUtil templateUtil)
+    public EmailSender(IConfiguration configuration, ILogger<EmailSender> logger, IMimeUtil mimeUtil, ITemplateUtil templateUtil)
     {
         _logger = logger;
         _mimeUtil = mimeUtil;
@@ -74,7 +70,8 @@ public sealed class EmailSender : IEmailSender
         if (msgModel is null)
             throw new InvalidOperationException($"Service bus message was not a {nameof(EmailMessage)}");
 
-        return await Send(msgModel, cancellationToken).NoSync();
+        return await Send(msgModel, cancellationToken)
+            .NoSync();
     }
 
     public async Task<bool> Send(EmailMessage message, CancellationToken cancellationToken = default)
@@ -98,7 +95,8 @@ public sealed class EmailSender : IEmailSender
         EmailDto emailDto;
         try
         {
-            emailDto = await BuildEmailDto(message, cancellationToken).NoSync();
+            emailDto = await BuildEmailDto(message, cancellationToken)
+                .NoSync();
         }
         catch (Exception ex)
         {
@@ -116,7 +114,8 @@ public sealed class EmailSender : IEmailSender
                 _logger.LogDebug("Sending MIME message (Subject: {Subject}) to {ToList}", emailDto.Subject, toList);
             }
 
-            await _mimeUtil.Send(mimeMessage, cancellationToken).NoSync();
+            await _mimeUtil.Send(mimeMessage, cancellationToken)
+                           .NoSync();
 
             if (_logger.IsEnabled(LogLevel.Information))
             {
@@ -152,9 +151,7 @@ public sealed class EmailSender : IEmailSender
         string templateFilePath = Path.Combine(_templatesRoot, message.TemplateFileName);
 
         // Only build content path when needed
-        string? contentFilePath = message.ContentFileName is null
-            ? null
-            : Path.Combine(_contentsRoot, message.ContentFileName);
+        string? contentFilePath = message.ContentFileName is null ? null : Path.Combine(_contentsRoot, message.ContentFileName);
 
         // Avoid allocating an empty dictionary twice; pre-size a bit since we add "subject".
         Dictionary<string, object> tokens;
@@ -174,8 +171,10 @@ public sealed class EmailSender : IEmailSender
         tokens["subject"] = message.Subject;
 
         string renderedBody = contentFilePath is not null
-            ? await _templateUtil.RenderWithContent(templateFilePath, tokens, contentFilePath, "bodyText", message.Partials, cancellationToken).NoSync()
-            : await _templateUtil.Render(templateFilePath, tokens, message.Partials, cancellationToken).NoSync();
+            ? await _templateUtil.RenderWithContent(templateFilePath, tokens, contentFilePath, "bodyText", message.Partials, cancellationToken)
+                                 .NoSync()
+            : await _templateUtil.Render(templateFilePath, tokens, message.Partials, cancellationToken)
+                                 .NoSync();
 
         return new EmailDto
         {
