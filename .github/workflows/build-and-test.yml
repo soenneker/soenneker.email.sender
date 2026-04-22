@@ -38,7 +38,7 @@ jobs:
         run: dotnet build test/Soenneker.Email.Sender.Tests/Soenneker.Email.Sender.Tests.csproj --configuration Release --no-restore --verbosity minimal
 
       - name: Test
-        run: dotnet test test/Soenneker.Email.Sender.Tests/Soenneker.Email.Sender.Tests.csproj --configuration Release --no-build --no-restore --verbosity minimal
+        run: dotnet test --project test/Soenneker.Email.Sender.Tests/Soenneker.Email.Sender.Tests.csproj --configuration Release --no-build --no-restore --verbosity minimal
 
       - name: Pack
         run: dotnet pack src/Soenneker.Email.Sender/Soenneker.Email.Sender.csproj --configuration Release --no-build --no-restore --output . --verbosity minimal
