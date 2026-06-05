@@ -53,6 +53,13 @@ public sealed class EmailSender : IEmailSender
         _contentsRoot = Path.Combine(localResources, "Contents");
     }
 
+    /// <summary>
+    /// Executes the send operation.
+    /// </summary>
+    /// <param name="messageContent">The message content.</param>
+    /// <param name="type">The type.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task containing the result of the operation.</returns>
     public async Task<bool> Send(string messageContent, string type, CancellationToken cancellationToken = default)
     {
         if (!_enabled)
@@ -74,6 +81,12 @@ public sealed class EmailSender : IEmailSender
             .NoSync();
     }
 
+    /// <summary>
+    /// Executes the send operation.
+    /// </summary>
+    /// <param name="message">The message.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task containing the result of the operation.</returns>
     public async Task<bool> Send(EmailMessage message, CancellationToken cancellationToken = default)
     {
         if (!_enabled)
