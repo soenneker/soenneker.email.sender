@@ -14,6 +14,8 @@ public static class EmailSenderRegistrar
     /// <summary>
     /// Adds <see cref="IEmailSender"/> as a singleton service. <para/>
     /// </summary>
+    /// <param name="services">Service collection that receives the registration.</param>
+    /// <returns>The same service collection, so additional registrations can be chained.</returns>
     public static IServiceCollection AddEmailSenderAsSingleton(this IServiceCollection services)
     {
         services.AddMimeUtilAsSingleton().AddTemplateUtilAsSingleton().TryAddSingleton<IEmailSender, EmailSender>();
@@ -24,6 +26,8 @@ public static class EmailSenderRegistrar
     /// <summary>
     /// Adds <see cref="IEmailSender"/> as a scoped service. <para/>
     /// </summary>
+    /// <param name="services">Service collection that receives the registration.</param>
+    /// <returns>The same service collection, so additional registrations can be chained.</returns>
     public static IServiceCollection AddEmailSenderAsScoped(this IServiceCollection services)
     {
         services.AddMimeUtilAsScoped().AddTemplateUtilAsScoped().TryAddScoped<IEmailSender, EmailSender>();
