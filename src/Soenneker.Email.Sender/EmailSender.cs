@@ -20,10 +20,10 @@ using System.Threading.Tasks;
 
 namespace Soenneker.Email.Sender;
 
-/// <inheritdoc cref="IEmailSender"/>
 public sealed class EmailSender : IEmailSender
 {
     private readonly bool _enabled;
+    private readonly bool _smtpEnabled;
     private readonly ILogger<EmailSender> _logger;
     private readonly IMimeUtil _mimeUtil;
     private readonly ITemplateUtil _templateUtil;
@@ -44,6 +44,7 @@ public sealed class EmailSender : IEmailSender
         _templateUtil = templateUtil;
 
         _enabled = configuration.GetValueStrict<bool>("Email:Enabled");
+        _smtpEnabled = configuration.GetValueStrict<bool>("Smtp:Enable");
         _defaultAddress = configuration.GetValueStrict<string>("Email:DefaultAddress");
         _defaultName = configuration.GetValueStrict<string>("Email:DefaultName");
 
@@ -53,24 +54,14 @@ public sealed class EmailSender : IEmailSender
         _contentsRoot = Path.Combine(localResources, "Contents");
     }
 
-    /// <summary>
-    /// Sends email sender for the email sender.
-    /// </summary>
-    /// <param name="messageContent">Body content of the email.</param>
-    /// <param name="type">Content type used to encode the message body.</param>
-    /// <param name="cancellationToken">Token used to cancel the operation.</param>
-    /// <returns>true if sends email sender for the email sender; otherwise, false.</returns>
     public async Task<bool> Send(string messageContent, string type, CancellationToken cancellationToken = default)
     {
-        if (!_enabled)
+        if (!_enabled || !_smtpEnabled)
         {
             if (_logger.IsEnabled(LogLevel.Debug))
-                _logger.LogDebug("{Name} is disabled by config", nameof(EmailSender));
+                _logger.LogDebug("{Name} or SMTP is disabled by config", nameof(EmailSender));
             return false;
         }
-
-        if (type is null)
-            throw new ArgumentException("Service bus message did not have a type", nameof(type));
 
         var msgModel = JsonUtil.Deserialize<EmailMessage>(messageContent);
 
@@ -81,18 +72,12 @@ public sealed class EmailSender : IEmailSender
             .NoSync();
     }
 
-    /// <summary>
-    /// Sends email sender for the email sender.
-    /// </summary>
-    /// <param name="message">Fully constructed email message to send.</param>
-    /// <param name="cancellationToken">Token used to cancel the operation.</param>
-    /// <returns>true if sends email sender for the email sender; otherwise, false.</returns>
     public async Task<bool> Send(EmailMessage message, CancellationToken cancellationToken = default)
     {
-        if (!_enabled)
+        if (!_enabled || !_smtpEnabled)
         {
             if (_logger.IsEnabled(LogLevel.Debug))
-                _logger.LogDebug("{Name} is disabled by config", nameof(EmailSender));
+                _logger.LogDebug("{Name} or SMTP is disabled by config", nameof(EmailSender));
             return false;
         }
 
@@ -101,8 +86,7 @@ public sealed class EmailSender : IEmailSender
         if (_logger.IsEnabled(LogLevel.Information))
         {
             // ToCommaSeparatedString allocates; do it only if needed
-            string toList = message.To.ToCommaSeparatedString();
-            _logger.LogInformation("Building and sending email (Subject: {Subject}) to {ToList}", message.Subject, toList);
+            _logger.LogInformation("Building and sending email (Subject: {Subject}) to {RecipientCount} recipient(s)", message.Subject, message.To.Count);
         }
 
         EmailDto emailDto;
@@ -132,8 +116,7 @@ public sealed class EmailSender : IEmailSender
 
             if (_logger.IsEnabled(LogLevel.Information))
             {
-                string toList = emailDto.To.ToCommaSeparatedString(true);
-                _logger.LogInformation("Email (Subject: {Subject}) successfully sent to {ToList}", emailDto.Subject, toList);
+                _logger.LogInformation("Email (Subject: {Subject}) successfully sent to {RecipientCount} recipient(s)", emailDto.Subject, emailDto.To.Count);
             }
         }
         catch (Exception ex)
@@ -141,8 +124,7 @@ public sealed class EmailSender : IEmailSender
             // Only build ToList when we actually log it
             if (_logger.IsEnabled(LogLevel.Error))
             {
-                string toList = emailDto.To.ToCommaSeparatedString(true);
-                _logger.LogError(ex, "SMTP send failed for message (Subject: {Subject}) to {ToList}", emailDto.Subject, toList);
+                _logger.LogError(ex, "SMTP send failed for message (Subject: {Subject}) to {RecipientCount} recipient(s)", emailDto.Subject, emailDto.To.Count);
             }
             else
             {
@@ -161,10 +143,10 @@ public sealed class EmailSender : IEmailSender
         message.Name ??= _defaultName;
         message.Address ??= _defaultAddress;
 
-        string templateFilePath = Path.Combine(_templatesRoot, message.TemplateFileName);
+        string templateFilePath = ResolveResourceFile(_templatesRoot, message.TemplateFileName, "template");
 
         // Only build content path when needed
-        string? contentFilePath = message.ContentFileName is null ? null : Path.Combine(_contentsRoot, message.ContentFileName);
+        string? contentFilePath = message.ContentFileName is null ? null : ResolveResourceFile(_contentsRoot, message.ContentFileName, "content");
 
         // Avoid allocating an empty dictionary twice; pre-size a bit since we add "subject".
         Dictionary<string, object> tokens;
@@ -195,9 +177,23 @@ public sealed class EmailSender : IEmailSender
             Subject = message.Subject,
             Name = message.Name,
             Address = message.Address,
+            ReplyTo = message.ReplyTo,
             To = message.To,
             Cc = message.Cc,
-            Bcc = message.Bcc
+            Bcc = message.Bcc,
+            Format = message.Format,
+            Priority = message.Priority
         };
+    }
+
+    private static string ResolveResourceFile(string root, string relativePath, string description)
+    {
+        string fullRoot = Path.TrimEndingDirectorySeparator(Path.GetFullPath(root)) + Path.DirectorySeparatorChar;
+        string fullPath = Path.GetFullPath(Path.Combine(fullRoot, relativePath));
+
+        if (!fullPath.StartsWith(fullRoot, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException($"The email {description} file must be located under {fullRoot}");
+
+        return fullPath;
     }
 }
