@@ -44,7 +44,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Soenneker.Email.Mime" Version="4.0.503" />
+        <PackageReference Include="Soenneker.Email.Mime" Version="4.0.507" />
         <PackageReference Include="Soenneker.Email.Senders.Abstract" Version="4.0.170" />
         <PackageReference Include="Soenneker.Extensions.Dtos.Email" Version="4.0.420" />
         <PackageReference Include="Soenneker.Utils.Json" Version="4.0.2658" />
