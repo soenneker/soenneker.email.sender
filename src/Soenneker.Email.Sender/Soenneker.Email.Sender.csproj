@@ -44,10 +44,10 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Soenneker.Email.Mime" Version="4.0.516" />
+        <PackageReference Include="Soenneker.Email.Mime" Version="4.0.518" />
         <PackageReference Include="Soenneker.Email.Senders.Abstract" Version="4.0.174" />
-        <PackageReference Include="Soenneker.Extensions.Dtos.Email" Version="4.0.426" />
-        <PackageReference Include="Soenneker.Utils.Json" Version="4.0.2675" />
+        <PackageReference Include="Soenneker.Extensions.Dtos.Email" Version="4.0.427" />
+        <PackageReference Include="Soenneker.Utils.Json" Version="4.0.2676" />
         <PackageReference Include="Soenneker.Utils.Template" Version="4.0.390" />
         <PackageReference Include="Soenneker.Extensions.Dictionaries.StringString" Version="4.0.26" />
     </ItemGroup>
