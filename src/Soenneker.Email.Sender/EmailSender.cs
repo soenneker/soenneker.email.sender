@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 
 namespace Soenneker.Email.Sender;
 
+/// <inheritdoc cref="IEmailSender" />
 public sealed class EmailSender : IEmailSender
 {
     private readonly bool _enabled;
