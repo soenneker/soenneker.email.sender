@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Soenneker.Dtos.Email;
 using Soenneker.Email.Mime.Abstract;
@@ -64,7 +64,7 @@ public sealed class EmailSender : IEmailSender
             return false;
         }
 
-        var msgModel = JsonUtil.Deserialize<EmailMessage>(messageContent);
+        var msgModel = JsonUtil.Deserialize<EmailMessage>(messageContent, LibraryJsonContext.Get<EmailMessage>());
 
         if (msgModel is null)
             throw new InvalidOperationException($"Service bus message was not a {nameof(EmailMessage)}");
