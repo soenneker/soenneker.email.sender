@@ -3,13 +3,14 @@ using Soenneker.Enums.Email.Format;
 using Soenneker.Enums.Email.Priority;
 using Soenneker.Messages.Email;
 using Soenneker.Utils.Json;
+using System.Threading;
 
 namespace Soenneker.Email.Sender.Tests;
 
 public class JsonMetadataTests
 {
     [Test]
-    public async ValueTask Email_contract_includes_package_enum_metadata()
+    public async ValueTask Email_contract_includes_package_enum_metadata(CancellationToken cancellationToken)
     {
         const string json = """
             {"type":"email","id":"1","queue":"email","sender":"test","createdAt":"2026-01-01T00:00:00Z",
