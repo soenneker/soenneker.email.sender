@@ -44,10 +44,10 @@ public sealed class EmailSender : IEmailSender
         _mimeUtil = mimeUtil;
         _templateUtil = templateUtil;
 
-        _enabled = configuration.GetValueStrict<bool>("Email:Enabled");
-        _smtpEnabled = configuration.GetValueStrict<bool>("Smtp:Enable");
-        _defaultAddress = configuration.GetValueStrict<string>("Email:DefaultAddress");
-        _defaultName = configuration.GetValueStrict<string>("Email:DefaultName");
+        _enabled = bool.Parse(configuration.GetStringStrict("Email:Enabled"));
+        _smtpEnabled = bool.Parse(configuration.GetStringStrict("Smtp:Enable"));
+        _defaultAddress = configuration.GetStringStrict("Email:DefaultAddress");
+        _defaultName = configuration.GetStringStrict("Email:DefaultName");
 
         string baseDir = AppContext.BaseDirectory;
         string localResources = Path.Combine(baseDir, "LocalResources", "Email");
