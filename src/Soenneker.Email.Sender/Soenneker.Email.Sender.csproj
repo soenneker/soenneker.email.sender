@@ -45,17 +45,17 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Soenneker.Email.Mime" Version="4.0.582" />
+        <PackageReference Include="Soenneker.Email.Mime" Version="4.0.585" />
         <PackageReference Include="Soenneker.Email.Senders.Abstract" Version="4.0.200" />
-        <PackageReference Include="Soenneker.Extensions.Dtos.Email" Version="4.0.472" />
-        <PackageReference Include="Soenneker.Utils.Json" Version="4.0.2741" />
-        <PackageReference Include="Soenneker.Utils.Template" Version="4.0.430" />
+        <PackageReference Include="Soenneker.Extensions.Dtos.Email" Version="4.0.476" />
+        <PackageReference Include="Soenneker.Utils.Json" Version="4.0.2742" />
+        <PackageReference Include="Soenneker.Utils.Template" Version="4.0.431" />
         <PackageReference Include="Soenneker.Extensions.Dictionaries.StringString" Version="4.0.33" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.12" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.12" />
-        <PackageReference Include="Soenneker.Extensions.Enumerable.String" Version="4.0.1480" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.13" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.13" />
+        <PackageReference Include="Soenneker.Extensions.Enumerable.String" Version="4.0.1482" />
         <PackageReference Include="Soenneker.Extensions.Task" Version="4.0.134" />
         <PackageReference Include="Soenneker.Extensions.ValueTask" Version="4.0.127" />
     </ItemGroup>
