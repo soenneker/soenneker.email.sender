@@ -45,11 +45,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Soenneker.Email.Mime" Version="11.0.608" />
+        <PackageReference Include="Soenneker.Email.Mime" Version="11.0.609" />
         <PackageReference Include="Soenneker.Email.Senders.Abstract" Version="11.0.213" />
         <PackageReference Include="Soenneker.Extensions.Dtos.Email" Version="11.0.500" />
-        <PackageReference Include="Soenneker.Utils.Json" Version="11.0.2762" />
-        <PackageReference Include="Soenneker.Utils.Template" Version="11.0.446" />
+        <PackageReference Include="Soenneker.Utils.Json" Version="11.0.2763" />
+        <PackageReference Include="Soenneker.Utils.Template" Version="11.0.447" />
         <PackageReference Include="Soenneker.Extensions.Dictionaries.StringString" Version="11.0.40" />
     </ItemGroup>
     <ItemGroup>
