@@ -45,16 +45,16 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Soenneker.Email.Mime" Version="4.0.602" />
-        <PackageReference Include="Soenneker.Email.Senders.Abstract" Version="11.0.212" />
-        <PackageReference Include="Soenneker.Extensions.Dtos.Email" Version="4.0.496" />
-        <PackageReference Include="Soenneker.Utils.Json" Version="4.0.2757" />
-        <PackageReference Include="Soenneker.Utils.Template" Version="4.0.445" />
+        <PackageReference Include="Soenneker.Email.Mime" Version="11.0.608" />
+        <PackageReference Include="Soenneker.Email.Senders.Abstract" Version="11.0.213" />
+        <PackageReference Include="Soenneker.Extensions.Dtos.Email" Version="11.0.500" />
+        <PackageReference Include="Soenneker.Utils.Json" Version="11.0.2762" />
+        <PackageReference Include="Soenneker.Utils.Template" Version="11.0.446" />
         <PackageReference Include="Soenneker.Extensions.Dictionaries.StringString" Version="11.0.40" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Soenneker.Extensions.Enumerable.String" Version="4.0.1498" />
-        <PackageReference Include="Soenneker.Extensions.Task" Version="4.0.140" />
+        <PackageReference Include="Soenneker.Extensions.Enumerable.String" Version="11.0.1501" />
+        <PackageReference Include="Soenneker.Extensions.Task" Version="11.0.141" />
         <PackageReference Include="Soenneker.Extensions.ValueTask" Version="4.0.133" />
     </ItemGroup>
     <ItemGroup>
