@@ -51,7 +51,7 @@
         <PackageReference Include="Soenneker.Extensions.Dtos.Email" Version="11.0.501" />
         <PackageReference Include="Soenneker.Utils.Json" Version="11.0.2764" />
         <PackageReference Include="Soenneker.Utils.Template" Version="11.0.448" />
-        <PackageReference Include="Soenneker.Extensions.Dictionaries.StringString" Version="11.0.40" />
+        <PackageReference Include="Soenneker.Extensions.Dictionaries.StringString" Version="11.0.41" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Soenneker.Extensions.Enumerable.String" Version="11.0.1501" />
