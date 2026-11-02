@@ -54,7 +54,7 @@
         <PackageReference Include="Soenneker.Extensions.Dictionaries.StringString" Version="11.0.42" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Soenneker.Extensions.Enumerable.String" Version="11.0.1501" />
+        <PackageReference Include="Soenneker.Extensions.Enumerable.String" Version="11.0.1502" />
         <PackageReference Include="Soenneker.Extensions.Task" Version="11.0.141" />
         <PackageReference Include="Soenneker.Extensions.ValueTask" Version="4.0.133" />
     </ItemGroup>
