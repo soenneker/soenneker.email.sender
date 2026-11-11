@@ -50,7 +50,7 @@
         <PackageReference Include="Soenneker.Email.Senders.Abstract" Version="11.0.226" />
         <PackageReference Include="Soenneker.Extensions.Dtos.Email" Version="11.0.522" />
         <PackageReference Include="Soenneker.Utils.Json" Version="11.0.2785" />
-        <PackageReference Include="Soenneker.Utils.Template" Version="11.0.462" />
+        <PackageReference Include="Soenneker.Utils.Template" Version="11.0.463" />
         <PackageReference Include="Soenneker.Extensions.Dictionaries.StringString" Version="11.0.44" />
     </ItemGroup>
     <ItemGroup>
