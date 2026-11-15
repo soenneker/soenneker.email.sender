@@ -46,15 +46,15 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Soenneker.Email.Mime" Version="11.0.629" />
+        <PackageReference Include="Soenneker.Email.Mime" Version="11.0.630" />
         <PackageReference Include="Soenneker.Email.Senders.Abstract" Version="11.0.228" />
-        <PackageReference Include="Soenneker.Extensions.Dtos.Email" Version="11.0.526" />
+        <PackageReference Include="Soenneker.Extensions.Dtos.Email" Version="11.0.527" />
         <PackageReference Include="Soenneker.Utils.Json" Version="11.0.2789" />
         <PackageReference Include="Soenneker.Utils.Template" Version="11.0.463" />
         <PackageReference Include="Soenneker.Extensions.Dictionaries.StringString" Version="11.0.44" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Soenneker.Extensions.Enumerable.String" Version="11.0.1517" />
+        <PackageReference Include="Soenneker.Extensions.Enumerable.String" Version="11.0.1518" />
     </ItemGroup>
     <ItemGroup>
         <InternalsVisibleTo Include="Soenneker.Email.Sender.Tests" />
