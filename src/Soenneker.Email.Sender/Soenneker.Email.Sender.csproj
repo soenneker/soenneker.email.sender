@@ -54,7 +54,7 @@
         <PackageReference Include="Soenneker.Extensions.Dictionaries.StringString" Version="11.0.45" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Soenneker.Extensions.Enumerable.String" Version="11.0.1520" />
+        <PackageReference Include="Soenneker.Extensions.Enumerable.String" Version="11.0.1522" />
     </ItemGroup>
     <ItemGroup>
         <InternalsVisibleTo Include="Soenneker.Email.Sender.Tests" />
